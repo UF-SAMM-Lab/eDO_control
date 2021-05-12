@@ -2,6 +2,7 @@
 
 import rospy
 from std_msgs.msg import Bool
+from std_msgs.msg import Float32MultiArray
 from edo_core_msgs.msg import MachineState
 from edo_core_msgs.msg import JointInit
 from edo_core_msgs.msg import JointReset
@@ -53,7 +54,9 @@ class EdoStates(object):
         self._edo_current_state_previous = current_state
         self.edo_opcode = opcode
         self._edo_jog_speed = 0.5
-        self.gripper_position = 60
+        self.gripper_position = 100
+        self.gripper_open_position = 100
+        self.gripper_close_position = 45
         self.send_first_step_bool = False  # select 6-axis configuration
         self.send_second_step_bool = False  # disconnect the brakes
         self.send_third_step_bool = False  # calibration process will start
@@ -77,6 +80,7 @@ class EdoStates(object):
         rospy.Subscriber("/machine_state", MachineState, self.callback)
         rospy.Subscriber("usb_jnt_state", JointStateArray, self.js_callback)
         rospy.Subscriber("open_gripper", Bool, self.callback_gripper)
+        rospy.Subscriber("set_gripper_open_close", Float32MultiArray, self.callback_gripper_open_close)
 
         self._joint_init_command_pub = rospy.Publisher('/bridge_init', JointInit, queue_size=10, latch=True)
         self._joint_reset_command_pub = rospy.Publisher('/bridge_jnt_reset', JointReset, queue_size=10, latch=True)
@@ -93,15 +97,21 @@ class EdoStates(object):
     def js_callback(self, msg):
         self.current_joint_states = msg
 
+    def callback_gripper_open_close(self, msg):
+        position = msg.data[0]
+        self.gripper_open_position=position
+        position = msg.data[1]
+        self.gripper_close_position=position
+
     def callback_gripper(self, msg):
         open = msg.data
         self.change_gripper_state(open)
 
     def change_gripper_state(self, open):
         if open:
-            self.gripper_position = 60
+            self.gripper_position = self.gripper_open_position
         else:
-            self.gripper_position = 0
+            self.gripper_position = self.gripper_close_position
         self.msg_jca.joints = [JointControl(self.current_joint_states.joints[i].position,
                                             self.current_joint_states.joints[i].velocity,
                                             self.current_joint_states.joints[i].current, 0, 0) for i in range(6)] + [JointControl(self.gripper_position, 0, 0, 0, 0)]
