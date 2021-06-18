@@ -16,6 +16,8 @@ if __name__ == '__main__':
     else:
         if calibrated:
             rospy.logwarn("Robot is calibrated!")
+            states.calibration_status_pub.publish("Robot is calibrated!")
         else:
             rospy.logerr("Robot calibration did not finish successfully")
+            states.calibration_status_pub.publish("Robot calibration did not finish successfully")
 

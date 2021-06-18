@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="jog" pkg="edo_control" type="jog.py" respawn="false" output="screen" />
+</launch>
