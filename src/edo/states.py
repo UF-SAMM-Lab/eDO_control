@@ -127,7 +127,7 @@ class EdoStates(object):
         try:
             algo_control_switch_srv = rospy.ServiceProxy('/algo_control_switch_srv', ControlSwitch)
             answer = algo_control_switch_srv(ControlSwitchRequest(mode=0 if new_state else 1))
-        except rospy.ServiceException, e:
+        except rospy.ServiceException as e:
             rospy.logerr("Cannot {} internal robot's algorithm manager".format(state_string))
         else:
             done = answer.result == 0
